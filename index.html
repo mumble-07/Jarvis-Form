@@ -69,12 +69,12 @@
         const recognition = new SpeechRecognition();
         recognition.lang = "en-US";
         recognition.interimResults = false;
-        recognition.continuous = true; // Allow continuous listening
+        recognition.continuous = true; // Continuous listening
 
         let selectedVoice = "default";
         let currentStep = "start";
         let answers = [];
-        let isFormActive = false; // Track if form is active
+        let isListening = false;
 
         const questions = {
             "start": {
@@ -116,6 +116,7 @@
         };
 
         const processAnswer = (answer) => {
+            console.log("User Answer: ", answer); // Debugging
             const normalizedAnswer = answer.trim().toLowerCase();
             const validChoices = questions[currentStep].choices.map(c => c.toLowerCase());
 
@@ -137,9 +138,10 @@
         };
 
         const startListening = () => {
-            if (!isFormActive) {
+            if (!isListening) {
+                isListening = true;
                 recognition.start();
-                isFormActive = true;
+                console.log("Listening started..."); // Debugging
             }
         };
 
@@ -149,8 +151,9 @@
         };
 
         recognition.onend = () => {
-            if (isFormActive) {
+            if (isListening) {
                 recognition.start(); // Restart listening if the form is still active
+                console.log("Recognition restarted..."); // Debugging
             }
         };
 
@@ -160,8 +163,9 @@
         };
 
         const stopListening = () => {
-            isFormActive = false;
+            isListening = false;
             recognition.stop();
+            console.log("Listening stopped."); // Debugging
         };
 
         const displayAnswers = () => {
