@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Audio Form</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #4caf50;
+        }
+        p {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: #555;
+        }
+        #controls {
+            margin-bottom: 30px;
+            display: flex;
+            gap: 15px;
+        }
+        button {
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #answers {
+            width: 90%;
+            max-width: 600px;
+            margin-top: 20px;
+            background: #fff;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            border-radius: 8px;
+        }
+        #answers h2 {
+            margin-top: 0;
+            color: #4caf50;
+        }
+        #answers p {
+            font-size: 1rem;
+            line-height: 1.5;
+            color: #333;
+        }
+    </style>
+    <script>
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+        recognition.lang = "en-US";
+        recognition.interimResults = false;
+        recognition.continuous = true; // Allow continuous listening
+
+        let selectedVoice = "default";
+        let currentStep = "start";
+        let answers = [];
+        let isFormActive = false; // Track if form is active
+
+        const questions = {
+            "start": {
+                question: "Who has an aquatic turtle?",
+                choices: ["Eyyyra", "Raiza", "Bobby"],
+            },
+            "eyyyra": {
+                question: "How many is her aquatic turtle?",
+                choices: ["One", "Two", "Three"],
+            },
+            "raiza": {
+                question: "Are you sure with your answer?",
+                choices: ["Yes, I am sure", "No, just kidding"],
+            },
+            "bobby": {
+                question: "Are you sure it's Bobby?",
+                choices: ["Sure na sure", "Joke lang", "True"],
+            },
+        };
+
+        const speak = (text) => {
+            const synth = window.speechSynthesis;
+            const utterance = new SpeechSynthesisUtterance(text);
+            const voices = synth.getVoices();
+
+            if (selectedVoice === "male") {
+                utterance.voice = voices.find(voice => voice.name.toLowerCase().includes("male")) || voices[0];
+            } else if (selectedVoice === "female") {
+                utterance.voice = voices.find(voice => voice.name.toLowerCase().includes("female")) || voices[0];
+            }
+
+            synth.speak(utterance);
+        };
+
+        const askQuestion = (step) => {
+            const question = questions[step].question;
+            const choices = questions[step].choices.join(", ");
+            speak(question + " Your choices are: " + choices);
+        };
+
+        const processAnswer = (answer) => {
+            const normalizedAnswer = answer.trim().toLowerCase();
+            const validChoices = questions[currentStep].choices.map(c => c.toLowerCase());
+
+            if (validChoices.includes(normalizedAnswer)) {
+                answers.push({ question: questions[currentStep].question, answer });
+
+                const nextStep = normalizedAnswer;
+                if (questions[nextStep]) {
+                    currentStep = nextStep;
+                    askQuestion(currentStep);
+                } else {
+                    speak("Thank you for completing the form. Here are your answers.");
+                    displayAnswers();
+                    stopListening();
+                }
+            } else {
+                speak("I didn't understand that. Please choose one of the available options: " + questions[currentStep].choices.join(", "));
+            }
+        };
+
+        const startListening = () => {
+            if (!isFormActive) {
+                recognition.start();
+                isFormActive = true;
+            }
+        };
+
+        recognition.onresult = (event) => {
+            const userAnswer = event.results[0][0].transcript;
+            processAnswer(userAnswer);
+        };
+
+        recognition.onend = () => {
+            if (isFormActive) {
+                recognition.start(); // Restart listening if the form is still active
+            }
+        };
+
+        recognition.onerror = (event) => {
+            console.error("Recognition error:", event.error);
+            speak("Sorry, I couldn't hear you. Please try again.");
+        };
+
+        const stopListening = () => {
+            isFormActive = false;
+            recognition.stop();
+        };
+
+        const displayAnswers = () => {
+            const answerContainer = document.getElementById("answers");
+            answerContainer.innerHTML = "<h2>Your Answers:</h2>";
+            answers.forEach((item, index) => {
+                const answerElement = document.createElement("p");
+                answerElement.textContent = `${index + 1}. ${item.question} - ${item.answer}`;
+                answerContainer.appendChild(answerElement);
+            });
+        };
+
+        const startForm = () => {
+            speak("Welcome to the Smart Audio Form.");
+            askQuestion(currentStep);
+            startListening();
+        };
+
+        const setVoice = (voice) => {
+            selectedVoice = voice;
+            speak("Voice changed to " + (voice === "male" ? "male" : "female") + ".");
+        };
+    </script>
+</head>
+<body>
+    <h1>Smart Audio Form</h1>
+    <p>Click "Start" to begin and use "Stop Listening" if you wish to pause voice input.</p>
+
+    <div id="controls">
+        <button onclick="setVoice('male')">Male Voice</button>
+        <button onclick="setVoice('female')">Female Voice</button>
+        <button onclick="startForm()">Start</button>
+        <button onclick="stopListening()">Stop Listening</button>
+    </div>
+
+    <div id="answers"></div>
+</body>
+</html>
