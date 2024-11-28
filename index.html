@@ -5,10 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smart Audio Form</title>
     <style>
+        /* Colors */
+        :root {
+            --primary-color: #002D42;
+            --secondary-color: #F4C811;
+            --accent-color: #FF414D;
+            --highlight-color: #1AA4B6;
+        }
+
         body {
             font-family: 'Arial', sans-serif;
-            background-color: #f4f4f9;
-            color: #333;
+            background-color: var(--primary-color);
+            color: white;
             margin: 0;
             padding: 0;
             display: flex;
@@ -17,23 +25,28 @@
             justify-content: center;
             min-height: 100vh;
         }
+
         h1 {
             font-size: 2.5rem;
             margin-bottom: 10px;
-            color: #4caf50;
+            color: var(--secondary-color);
         }
+
         p {
             font-size: 1.2rem;
             margin-bottom: 20px;
-            color: #555;
+            color: var(--secondary-color);
         }
+
         #controls {
             margin-bottom: 30px;
             display: flex;
             gap: 15px;
+            flex-wrap: wrap;
         }
-        button {
-            background-color: #4caf50;
+
+        button, select {
+            background-color: var(--highlight-color);
             color: white;
             border: none;
             padding: 10px 20px;
@@ -42,22 +55,49 @@
             cursor: pointer;
             transition: background-color 0.3s;
         }
-        button:hover {
-            background-color: #45a049;
+
+        button:hover, select:hover {
+            background-color: var(--accent-color);
         }
+
+        #currentQuestion {
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        #currentQuestion h2 {
+            margin: 0 0 10px;
+            font-size: 1.8rem;
+            color: var(--secondary-color);
+        }
+
+        #currentQuestion ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        #currentQuestion ul li {
+            font-size: 1.2rem;
+            margin: 5px 0;
+            color: white;
+        }
+
         #answers {
             width: 90%;
             max-width: 600px;
             margin-top: 20px;
-            background: #fff;
+            background: white;
             box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
             padding: 20px;
             border-radius: 8px;
+            background-color: #f9f9f9;
         }
+
         #answers h2 {
             margin-top: 0;
-            color: #4caf50;
+            color: var(--primary-color);
         }
+
         #answers p {
             font-size: 1rem;
             line-height: 1.5;
@@ -69,30 +109,86 @@
         const recognition = new SpeechRecognition();
         recognition.lang = "en-US";
         recognition.interimResults = false;
-        recognition.continuous = false; // Single recognition per button click
 
         let selectedVoice = "default";
         let currentStep = "start";
         let answers = [];
-        let isListening = false;
+        let selectedTopic = "";
 
-        const questions = {
-            "start": {
-                question: "Who has an aquatic turtle?",
-                choices: ["Eyyyra", "Raiza", "Bobby"],
+        // Define questions for topics
+        const topics = {
+            "Turtles": {
+                "start": {
+                    question: "You see an aquatic turtle struggling to cross a road. What will you do?",
+                    choices: ["Help it cross", "Ignore it", "Take it home"],
+                },
+                "help it cross": {
+                    question: "Where will you move it?",
+                    choices: ["Toward the water", "To the other side", "Back to where it started"],
+                },
+                "ignore it": {
+                    question: "If it gets injured later, how would you feel?",
+                    choices: ["Regretful", "Unconcerned", "Not sure"],
+                },
+                "take it home": {
+                    question: "Do you have the resources to care for a turtle?",
+                    choices: ["Yes", "No", "I don't know"],
+                },
             },
-            "eyyyra": {
-                question: "How many is her aquatic turtle?",
-                choices: ["One", "Two", "Three"],
+            "Space": {
+                "start": {
+                    question: "You’re on a mission to Mars and encounter a technical issue. What will you do first?",
+                    choices: ["Contact Earth", "Check the systems", "Panic"],
+                },
+                "contact earth": {
+                    question: "The signal takes time to reach Earth. How will you keep the crew calm?",
+                    choices: ["Hold a meeting", "Provide reassurance", "Do nothing"],
+                },
+                "check the systems": {
+                    question: "Which system will you check first?",
+                    choices: ["Oxygen", "Navigation", "Communication"],
+                },
+                "panic": {
+                    question: "Your crew is losing morale. What can you do to refocus them?",
+                    choices: ["Give a speech", "Assign tasks", "Stay silent"],
+                },
             },
-            "raiza": {
-                question: "Are you sure with your answer?",
-                choices: ["Yes, I am sure", "No, just kidding"],
+            "Business": {
+                "start": {
+                    question: "You need to pitch your startup idea to investors. What is your first step?",
+                    choices: ["Create a business plan", "Practice your pitch", "Research the investors"],
+                },
+                "create a business plan": {
+                    question: "What will be the focus of your business plan?",
+                    choices: ["Financials", "Market analysis", "Core idea"],
+                },
+                "practice your pitch": {
+                    question: "How will you make your pitch stand out?",
+                    choices: ["Use visuals", "Add a success story", "Focus on numbers"],
+                },
+                "research the investors": {
+                    question: "What will you research about the investors?",
+                    choices: ["Their interests", "Their past investments", "Their background"],
+                },
             },
-            "bobby": {
-                question: "Are you sure it's Bobby?",
-                choices: ["Sure na sure", "Joke lang", "True"],
-            },
+            "Food": {
+                "start": {
+                    question: "You’re hosting a dinner party. What type of cuisine will you serve?",
+                    choices: ["Italian", "Asian", "Mexican"],
+                },
+                "italian": {
+                    question: "Which dish will be your main course?",
+                    choices: ["Lasagna", "Pasta", "Risotto"],
+                },
+                "asian": {
+                    question: "What will be the highlight of your meal?",
+                    choices: ["Sushi", "Stir fry", "Curry"],
+                },
+                "mexican": {
+                    question: "Which side dish will you include?",
+                    choices: ["Tacos", "Guacamole", "Nachos"],
+                },
+            }
         };
 
         const speak = (text) => {
@@ -110,21 +206,31 @@
         };
 
         const askQuestion = (step) => {
-            const question = questions[step].question;
-            const choices = questions[step].choices.join(", ");
-            speak(question + " Your choices are: " + choices);
+            const question = topics[selectedTopic][step].question;
+            const choices = topics[selectedTopic][step].choices;
+
+            // Display question and options on screen
+            const questionContainer = document.getElementById("currentQuestion");
+            questionContainer.innerHTML = `
+                <h2>${question}</h2>
+                <ul>
+                    ${choices.map(choice => `<li>${choice}</li>`).join("")}
+                </ul>
+            `;
+
+            // Speak the question and choices
+            speak(question + " Your choices are: " + choices.join(", "));
         };
 
         const processAnswer = (answer) => {
-            console.log("User Answer: ", answer); // Debugging
             const normalizedAnswer = answer.trim().toLowerCase();
-            const validChoices = questions[currentStep].choices.map(c => c.toLowerCase());
+            const validChoices = topics[selectedTopic][currentStep].choices.map(c => c.toLowerCase());
 
             if (validChoices.includes(normalizedAnswer)) {
-                answers.push({ question: questions[currentStep].question, answer });
+                answers.push({ question: topics[selectedTopic][currentStep].question, answer });
 
                 const nextStep = normalizedAnswer;
-                if (questions[nextStep]) {
+                if (topics[selectedTopic][nextStep]) {
                     currentStep = nextStep;
                     askQuestion(currentStep);
                 } else {
@@ -132,28 +238,21 @@
                     displayAnswers();
                 }
             } else {
-                speak("I didn't understand that. Please choose one of the available options: " + questions[currentStep].choices.join(", "));
+                speak("I didn't understand that. Please choose one of the available options: " + topics[selectedTopic][currentStep].choices.join(", "));
             }
         };
 
         const startListening = () => {
-            if (!isListening) {
-                isListening = true;
-                recognition.start();
-                console.log("Listening started..."); // Debugging
-            }
+            recognition.start();
         };
 
         recognition.onresult = (event) => {
             const userAnswer = event.results[0][0].transcript;
             processAnswer(userAnswer);
-            isListening = false; // Reset after one answer is processed
         };
 
-        recognition.onerror = (event) => {
-            console.error("Recognition error:", event.error);
+        recognition.onerror = () => {
             speak("Sorry, I couldn't hear you. Please try again.");
-            isListening = false; // Reset on error
         };
 
         const displayAnswers = () => {
@@ -167,27 +266,54 @@
         };
 
         const startForm = () => {
-            speak("Welcome to the Smart Audio Form.");
+            if (!selectedTopic) {
+                speak("Please select a topic first.");
+                return;
+            }
+            answers = [];
+            currentStep = "start";
+            speak(`You selected ${selectedTopic}. Let's start.`);
             askQuestion(currentStep);
+        };
+
+        const restartForm = () => {
+            answers = [];
+            currentStep = "start";
+            selectedTopic = "";
+            document.getElementById("currentQuestion").innerHTML = "";
+            document.getElementById("answers").innerHTML = "";
+            speak("The form has been restarted. Please select a topic to begin.");
+        };
+
+        const selectTopic = () => {
+            selectedTopic = document.getElementById("topicDropdown").value;
         };
 
         const setVoice = (voice) => {
             selectedVoice = voice;
-            speak("Voice changed to " + (voice === "male" ? "male" : "female") + ".");
         };
     </script>
 </head>
 <body>
     <h1>Smart Audio Form</h1>
-    <p>Click "Start" to begin. Use "Say Answer" to speak your answer for each question.</p>
-
+    <p>Choose a topic, and the form will adapt its questions based on your choices.</p>
     <div id="controls">
+        <select id="topicDropdown" onchange="selectTopic()">
+            <option value="">-- Select a Topic --</option>
+            <option value="Turtles">Turtles</option>
+            <option value="Space">Space</option>
+            <option value="Business">Business</option>
+            <option value="Food">Food</option>
+        </select>
+
         <button onclick="setVoice('male')">Male Voice</button>
         <button onclick="setVoice('female')">Female Voice</button>
         <button onclick="startForm()">Start</button>
+        <button onclick="restartForm()">Restart</button>
         <button onclick="startListening()">Say Answer</button>
     </div>
 
+    <div id="currentQuestion"></div>
     <div id="answers"></div>
 </body>
 </html>
