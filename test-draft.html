@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Audio Form</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Smart Audio Form</h1>
+    <p>Choose a topic, and the form will adapt its questions based on your choices.</p>
+    <div id="controls">
+        <select id="topicDropdown" onchange="selectTopic()">
+            <option value="">-- Select a Topic --</option>
+        </select>
+
+        <button onclick="setVoice('male')">Male Voice</button>
+        <button onclick="setVoice('female')">Female Voice</button>
+        <button onclick="startForm()">Start</button>
+        <button onclick="restartForm()">Restart</button>
+        <button onclick="startListening()">Say Answer</button>
+    </div>
+
+    <div id="currentQuestion"></div>
+    <div id="answers"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>

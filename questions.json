@@ -1,0 +1,38 @@
+{
+  "Turtles": {
+      "start": {
+          "question": "You see an aquatic turtle struggling to cross a road. What will you do?",
+          "choices": ["Help it cross", "Ignore it", "Take it home"]
+      },
+      "help it cross": {
+          "question": "Where will you move it?",
+          "choices": ["Toward the water", "To the other side", "Back to where it started"]
+      },
+      "ignore it": {
+          "question": "If it gets injured later, how would you feel?",
+          "choices": ["Regretful", "Unconcerned", "Not sure"]
+      },
+      "take it home": {
+          "question": "Do you have the resources to care for a turtle?",
+          "choices": ["Yes", "No", "I don't know"]
+      }
+  },
+  "Space": {
+      "start": {
+          "question": "You’re on a mission to Mars and encounter a technical issue. What will you do first?",
+          "choices": ["Contact Earth", "Check the systems", "Panic"]
+      }
+  },
+  "Business": {
+      "start": {
+          "question": "You need to pitch your startup idea to investors. What is your first step?",
+          "choices": ["Create a business plan", "Practice your pitch", "Research investors"]
+      }
+  },
+  "Food": {
+      "start": {
+          "question": "You're planning a dinner party. What's your first step?",
+          "choices": ["Create a menu", "Set a theme", "Invite guests"]
+      }
+  }
+}
