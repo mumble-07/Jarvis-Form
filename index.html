@@ -69,7 +69,7 @@
         const recognition = new SpeechRecognition();
         recognition.lang = "en-US";
         recognition.interimResults = false;
-        recognition.continuous = true; // Continuous listening
+        recognition.continuous = false; // Single recognition per button click
 
         let selectedVoice = "default";
         let currentStep = "start";
@@ -130,7 +130,6 @@
                 } else {
                     speak("Thank you for completing the form. Here are your answers.");
                     displayAnswers();
-                    stopListening();
                 }
             } else {
                 speak("I didn't understand that. Please choose one of the available options: " + questions[currentStep].choices.join(", "));
@@ -148,24 +147,13 @@
         recognition.onresult = (event) => {
             const userAnswer = event.results[0][0].transcript;
             processAnswer(userAnswer);
-        };
-
-        recognition.onend = () => {
-            if (isListening) {
-                recognition.start(); // Restart listening if the form is still active
-                console.log("Recognition restarted..."); // Debugging
-            }
+            isListening = false; // Reset after one answer is processed
         };
 
         recognition.onerror = (event) => {
             console.error("Recognition error:", event.error);
             speak("Sorry, I couldn't hear you. Please try again.");
-        };
-
-        const stopListening = () => {
-            isListening = false;
-            recognition.stop();
-            console.log("Listening stopped."); // Debugging
+            isListening = false; // Reset on error
         };
 
         const displayAnswers = () => {
@@ -181,7 +169,6 @@
         const startForm = () => {
             speak("Welcome to the Smart Audio Form.");
             askQuestion(currentStep);
-            startListening();
         };
 
         const setVoice = (voice) => {
@@ -192,13 +179,13 @@
 </head>
 <body>
     <h1>Smart Audio Form</h1>
-    <p>Click "Start" to begin and use "Stop Listening" if you wish to pause voice input.</p>
+    <p>Click "Start" to begin. Use "Say Answer" to speak your answer for each question.</p>
 
     <div id="controls">
         <button onclick="setVoice('male')">Male Voice</button>
         <button onclick="setVoice('female')">Female Voice</button>
         <button onclick="startForm()">Start</button>
-        <button onclick="stopListening()">Stop Listening</button>
+        <button onclick="startListening()">Say Answer</button>
     </div>
 
     <div id="answers"></div>
